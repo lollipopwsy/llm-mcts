@@ -1,4 +1,4 @@
-# wsy-llm-mcts
+# wsy-llm-mcts 1
 
 This repository contains the code for NeurIPS'23 paper: [Large language models as commonsense knowledge for large-scale task planning](https://arxiv.org/abs/2305.14078). 
 
