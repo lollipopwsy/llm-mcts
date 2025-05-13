@@ -165,5 +165,6 @@ tmp/
 expert_actions**/
 port**.txt
 data/
-memory*
+# memory*
 trajectories*
+virtuallhome.zip
