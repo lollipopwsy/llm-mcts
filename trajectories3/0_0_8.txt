@@ -1,0 +1,17 @@
+Task 0, Step 0, Simulation 8
+Complete trajectory:
+[walk] <knifeblock> (115)
+[walk] <cutleryfork> (368)
+[grab] <cutleryfork> (368)
+[putback] <cutleryfork> (368) <kitchencounter> (93)
+[walk] <plate> (369)
+[grab] <plate> (369)
+[walk] <kitchentable> (72)
+[putback] <plate> (369) <kitchentable> (72)
+[walk] <dishbowl> (55)
+[walk] <mug> (155)
+[walk] <condimentshaker> (147)
+[walk] <box> (146)
+[walk] <condimentbottle> (131)
+[walk] <cellphone> (157)
+[walk] <peach> (52)

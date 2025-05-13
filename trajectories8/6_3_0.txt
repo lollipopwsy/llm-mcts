@@ -1,0 +1,10 @@
+Task 6, Step 3, Simulation 0
+Goal: Goal: put 1 plate on the kitchentable.
+Complete trajectory:
+[walk] <kitchencounterdrawer> (82)
+[walk] <kitchentable> (72)
+[walk] <plate> (368)
+[grab] <plate> (368)
+[walk] <kitchentable> (72)
+[putback] <plate> (368) <kitchentable> (72)
+True

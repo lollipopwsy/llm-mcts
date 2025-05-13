@@ -1,0 +1,17 @@
+Task 0, Step 0, Simulation 4
+Complete trajectory:
+[walk] <knifeblock> (115)
+[walk] <cutleryfork> (368)
+[grab] <cutleryfork> (368)
+[putback] <cutleryfork> (368) <kitchencounter> (93)
+[walk] <kitchentable> (72)
+[walk] <sink> (90)
+[walk] <knifeblock> (115)
+[walk] <bedroom> (210)
+[walk] <desk> (270)
+[walk] <perfume> (313)
+[walk] <bathroom> (172)
+[walk] <bathroom> (172)
+[walk] <deodorant> (316)
+[walk] <kitchen> (11)
+[walk] <kitchen> (11)
