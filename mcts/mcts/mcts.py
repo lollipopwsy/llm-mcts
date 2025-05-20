@@ -605,14 +605,14 @@ class MCTSAgent:
         self.step_count = 0  # 当前任务的第几步
         
         # 添加轨迹保存路径
-        self.trajectory_dir = "trajectories14"
+        self.trajectory_dir = "trajectories17"
         if not os.path.exists(self.trajectory_dir):
             os.makedirs(self.trajectory_dir)
 
         # 用于保存 few-shot 反思内容
         self.memory = []
         # 定义并创建 memory 文件夹
-        self.memory_dir = "memory11"
+        self.memory_dir = "memory14"
         if not os.path.exists(self.memory_dir):
             os.makedirs(self.memory_dir)
 
@@ -668,6 +668,7 @@ class MCTSAgent:
 
         for i in tqdm(range(self.simulation_num)):
             # print(f"\n---------------------- 模拟 #{i+1}/{self.simulation_num} ----------------------")
+            self.root = self.build_state(ob, history, valid_actions, done, use_llm=self.use_llm, memory=self.memory)
             self.env.reset()
             self.env.history = init_history.copy()
             _, root = self.simulate(self.root, 0, i)  # 直接传递i作为sim_count

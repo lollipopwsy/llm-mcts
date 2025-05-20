@@ -1,0 +1,13 @@
+Task 0, Step 1, Simulation 4
+Goal: Goal: put 1 cutleryfork on the kitchentable, put 1 plate on the kitchentable.
+Complete trajectory:
+[walk] <knifeblock> (115)
+[walk] <cutleryfork> (368)
+[grab] <cutleryfork> (368)
+[walk] <kitchentable> (72)
+[putback] <cutleryfork> (368) <kitchentable> (72)
+[walk] <plate> (369)
+[grab] <plate> (369)
+[walk] <kitchentable> (72)
+[putback] <plate> (369) <kitchentable> (72)
+True
