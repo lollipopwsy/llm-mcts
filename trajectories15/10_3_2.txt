@@ -1,0 +1,22 @@
+Task 10, Step 3, Simulation 2
+Goal: Goal: put 1 cutleryfork on the kitchentable, put 1 wineglass on the kitchentable.
+Complete trajectory:
+[walk] <kitchen> (11)
+[walk] <cutleryfork> (369)
+[grab] <cutleryfork> (368)
+[putback] <cutleryfork> (368) <kitchencounter> (93)
+[grab] <cutleryfork> (368)
+[putback] <cutleryfork> (368) <kitchencounter> (93)
+[walk] <kitchentable> (72)
+[walk] <cutleryfork> (369)
+[grab] <cutleryfork> (369)
+[putback] <cutleryfork> (369) <kitchencounter> (93)
+[walk] <cutleryfork> (369)
+[walk] <kitchentable> (72)
+[walk] <cutleryfork> (369)
+[grab] <cutleryfork> (369)
+[putback] <cutleryfork> (369) <kitchencounter> (93)
+[walk] <cutleryfork> (369)
+[walk] <cutleryfork> (369)
+[walk] <cutleryfork> (369)
+False

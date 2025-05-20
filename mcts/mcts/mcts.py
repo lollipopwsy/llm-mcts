@@ -605,16 +605,21 @@ class MCTSAgent:
         self.step_count = 0  # 当前任务的第几步
         
         # 添加轨迹保存路径
-        self.trajectory_dir = "trajectories14"
+        self.trajectory_dir = "trajectories15"
         if not os.path.exists(self.trajectory_dir):
             os.makedirs(self.trajectory_dir)
 
         # 用于保存 few-shot 反思内容
         self.memory = []
         # 定义并创建 memory 文件夹
-        self.memory_dir = "memory11"
+        self.memory_dir = "memory12"
         if not os.path.exists(self.memory_dir):
             os.makedirs(self.memory_dir)
+            
+        # 添加状态观察器，用于跟踪相同ID的节点
+        self.state_observers = defaultdict(list)
+        # 标记是否需要重新扫描树
+        self.need_rescan = False
 
     def few_shot_reflection(self, history):
         """
@@ -649,44 +654,64 @@ class MCTSAgent:
         '''
         init_history = history.copy()
         
-        # # 添加打印语句
-        # print("初始history:")
-        # print(history)
+        # 构建根节点
+        self.root = self.build_state(ob, history, valid_actions, done, use_llm=self.use_llm, memory=self.memory)
         
-        # if '*** You have won ***' in next_state_text or '*** You have died ***' in next_state_text:
-        #     score = int(next_state_text.split('you scored ')[1].split(' out of')[0])
-        #     reward = score - state_node.score
-        #     info['score'] = score
-
-        # self.write_buffer(state_node, best_action_node, ob, reward, done, info)
-
-        # if self.root is not None and self.root.best_action_node.children is not None:
-        #     self.root = self.root.best_action_node.children
-        #     self.root.parent = None
-        # else:
-        self.root = self.build_state(ob, history, valid_actions, done, use_llm=self.use_llm,memory=self.memory)
+        # 创建共享memory队列，用于在模拟之间共享反思
+        shared_memory = self.memory.copy()
+        self.need_rescan = False
 
         for i in tqdm(range(self.simulation_num)):
-            # print(f"\n---------------------- 模拟 #{i+1}/{self.simulation_num} ----------------------")
             self.env.reset()
             self.env.history = init_history.copy()
-            _, root = self.simulate(self.root, 0, i)  # 直接传递i作为sim_count
+            
+            # 每次模拟前更新memory
+            self.memory = shared_memory.copy()
+            
+            _, root = self.simulate(self.root, 0, i)
             self.root = root
+            
+            # 模拟后更新共享memory
+            shared_memory = self.memory.copy()
+            
+            # 如果需要重新扫描树，则进行树重扫描
+            if self.need_rescan:
+                self._rescan_tree(self.root)
+                self.need_rescan = False
             
         self.step_count += 1  # 每次search完成后增加step计数
         
-        # select best action by Q-value
+        # 最终选择最佳动作
         best_action_node_idx = self.greedy_action_node(self.root, 0, 0, if_print=True)
-        # select best action by Count
-        # best_action_node = self.max_visit_action_node(self.root)
         best_action_node = self.root.children[best_action_node_idx]
         self.root.best_action_node = best_action_node
         
-        # # 添加打印语句
-        # print(f"最终选择的动作: {best_action_node.action}")
-        # print(f"当前history: {self.root.history}")
-        
         return self.root.best_action_node.action
+    
+    def _rescan_tree(self, root_node):
+        """重新扫描树，更新节点先验概率"""
+        visited = set()
+        nodes_to_visit = [root_node]
+        
+        while nodes_to_visit:
+            node = nodes_to_visit.pop()
+            if node.id in visited:
+                continue
+                
+            # 重新计算先验概率
+            if node.use_llm:
+                node.children_probs, node.predicted_reward = self.llm_policy._calculate_emperical_prob(
+                    node.history, node.state, node.valid_actions, 
+                    self.env.get_goal(), 10, 0, 0.95, 
+                    memory=self.memory
+                )
+            
+            visited.add(node.id)
+            
+            # 添加子节点
+            for child in node.children:
+                if hasattr(child, 'children') and child.children is not None:
+                    nodes_to_visit.append(child.children)
 
     @staticmethod
     def state_id(history: list):
@@ -709,14 +734,12 @@ class MCTSAgent:
                 state.children.append(ActionNode(state.valid_actions[valid_action]))
             else:
                 state.children.append(ActionNode(valid_action))
-
+        
+        # 添加到状态观察器
+        self.state_observers[state.id].append(state)
         return state
 
-    def build_state(self, ob, history, valid_actions, done, reward=0, prev_action=' ', use_llm=False,memory=None):
-        # 添加打印语句
-        # print(f"构建状态时的history (prev_action={prev_action}):")
-        # print(history)
-        
+    def build_state(self, ob, history, valid_actions, done, reward=0, prev_action=' ', use_llm=False, memory=None):
         state = StateNode()
         state.ob = ob
         # state.look = info['look']
@@ -739,7 +762,7 @@ class MCTSAgent:
             
         else:
             state.children_probs, state.predicted_reward = self.llm_policy._calculate_emperical_prob(
-                history, ob, valid_actions, self.env.get_goal(), 10, 0, 0.95, memory=self.memory)
+                history, ob, valid_actions, self.env.get_goal(), 10, 0, 0.95, memory=memory if memory is not None else self.memory)
             # 利用大语言模型计算各个动作的先验概率，并预测奖励
             
         self.state_dict[state.id] = state
@@ -749,6 +772,8 @@ class MCTSAgent:
             else:
                 state.children.append(ActionNode(valid_action))
 
+        # 添加到状态观察器
+        self.state_observers[state.id].append(state)
         return state
 
         
@@ -896,19 +921,13 @@ class MCTSAgent:
         best_idx = np.argmax(state_node.children_probs)
         action_node = state_node.children[best_idx]
 
-
         action = action_node.action
 
         ob, reward, done, history, valid_actions = self.env.step(action)
         
-        # 添加打印语句
-        # print(f"Rollout中执行动作 {action} 后的history:")
-        # print(history)
-        
         if done:
             print("Done!")
         next_state_id = self.state_id(history)
-
 
         if next_state_id == action_node.children_id:
             next_state_node = action_node.children
@@ -935,35 +954,33 @@ class MCTSAgent:
                 f.write("\n".join(history))
                 f.write("\n")
                 f.write(str(done) + "\n")
-                
-            # print(f"轨迹已保存到: {filepath}")
-
+            
             # 如果模拟失败，进行 few-shot 反思
             if not done:
                 reflection = self.few_shot_reflection(history)
                 self.memory.append(reflection)
-                # ——立刻更新当前节点的先验——
-                # state_id = next_state_node.id
-                # node = self.state_dict[state_id]
-                # node.children_probs, _ = self.llm_policy._calculate_emperical_prob(
-                #     node.history, node.state, node.valid_actions,
-                #     self.env.get_goal(), 10, 0, 0.95,
-                #     memory=self.memory
-                # )
-                # 2. 重新计算先验和预测价值
-                node = self.state_dict[next_state_node.id]
+                
+                # 计算新的先验概率
                 children_probs, pred_value = self.llm_policy._calculate_emperical_prob(
-                    history=node.history,
-                    observation=node.state,
-                    valid_action_list=node.valid_actions,
+                    history=next_state_node.history,
+                    observation=next_state_node.state,
+                    valid_action_list=next_state_node.valid_actions,
                     instruction=str(self.env.get_goal()),
-                    done_reward=reward,            # 用 rollout 得到的真实 reward
-                    step_reward=0,                 # 或者你定义的 step reward
+                    done_reward=reward,
+                    step_reward=0,
                     discount_factor=self.discount_factor,
                     memory=self.memory
                 )
-                node.children_probs   = children_probs
-                node.predicted_reward = pred_value
+                
+                # 广播更新到所有具有相同ID的状态节点
+                for node in self.state_observers[next_state_node.id]:
+                    if len(node.children_probs) == len(children_probs):  # 确保动作数量匹配
+                        node.children_probs = children_probs.copy()
+                        node.predicted_reward = pred_value
+                
+                # 设置标记，表示需要重新扫描树
+                self.need_rescan = True
+                
                 # 单独保存反思到 memory 文件夹
                 memory_filename = f"{self.task_count}_{self.step_count}_reflection.txt"
                 memory_filepath = os.path.join(self.memory_dir, memory_filename)
@@ -973,4 +990,11 @@ class MCTSAgent:
                     mem_file.write(reflection + "\n")
 
         return r
+
+    def reset_task(self):
+        """重置任务计数器和memory"""
+        self.task_count += 1
+        self.step_count = 0
+        self.memory = []  # 清空memory
+        self.state_observers.clear()  # 清空状态观察器
 
