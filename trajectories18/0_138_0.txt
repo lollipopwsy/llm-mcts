@@ -1,0 +1,21 @@
+Task 0, Step 138, Simulation 0
+Goal: Goal: put 1 plate on the kitchentable, put 1 wineglass on the kitchentable.
+Complete trajectory:
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+[walk] <kitchencabinet> (80)
+False

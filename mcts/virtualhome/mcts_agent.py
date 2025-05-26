@@ -439,7 +439,7 @@ def test():
         print("succ rate: ", succ / total)
 
         # 当开始一个新任务时
-        agent.reset_task()  # 使用新添加的reset_task方法来重置计数器和memory
+        # agent.reset_task()  # 使用新添加的reset_task方法来重置计数器和memory
 
 if __name__ == "__main__" :
     test()
