@@ -605,14 +605,14 @@ class MCTSAgent:
         self.step_count = 0  # 当前任务的第几步
         
         # 添加轨迹保存路径
-        self.trajectory_dir = "trajectories15"
+        self.trajectory_dir = "trajectories20"
         if not os.path.exists(self.trajectory_dir):
             os.makedirs(self.trajectory_dir)
 
         # 用于保存 few-shot 反思内容
         self.memory = []
         # 定义并创建 memory 文件夹
-        self.memory_dir = "memory12"
+        self.memory_dir = "memory17"
         if not os.path.exists(self.memory_dir):
             os.makedirs(self.memory_dir)
             

@@ -356,7 +356,7 @@ def test():
     llm_model = LLM_Model("cuda:1", args.model)
     vhenv = UnityEnvironment(num_agents=1,
                                 max_episode_length=100,
-                                port_id=2,
+                                port_id=4,
                                 env_task_set=env_task_set,
                                 observation_types=["partial"],
                                 use_editor=False,
